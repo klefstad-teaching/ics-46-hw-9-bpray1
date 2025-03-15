@@ -12,6 +12,17 @@ struct NodeComparator {
 vector<int> dijkstra_shortest_path(const Graph& G, int source, vector<int>& previous) {
     int n = G.numVertices;
     
+    // Safety check for empty graph
+    if (n <= 0) {
+        return vector<int>();
+    }
+    
+    // Safety check for invalid source
+    if (source < 0 || source >= n) {
+        cerr << "Invalid source vertex: " << source << endl;
+        return vector<int>(n, INF);
+    }
+    
     // Initialize distance and previous arrays
     vector<int> distances(n, INF);
     previous.resize(n, -1);
@@ -40,6 +51,12 @@ vector<int> dijkstra_shortest_path(const Graph& G, int source, vector<int>& prev
         // Check all adjacent vertices
         for (const Edge& edge : G[u]) {
             int v = edge.dst;
+            
+            // Safety check for invalid destination
+            if (v < 0 || v >= n) {
+                continue;
+            }
+            
             int weight = edge.weight;
             
             // Relaxation step: If we've found a shorter path to v through u
@@ -58,20 +75,42 @@ vector<int> dijkstra_shortest_path(const Graph& G, int source, vector<int>& prev
 vector<int> extract_shortest_path(const vector<int>& distances, const vector<int>& previous, int destination) {
     vector<int> path;
     
+    // Safety check for empty arrays
+    if (distances.empty() || previous.empty()) {
+        return path;
+    }
+    
+    // Safety check for invalid destination
+    if (destination < 0 || destination >= distances.size()) {
+        cerr << "Invalid destination vertex: " << destination << endl;
+        return path;
+    }
+    
     // If destination is unreachable
     if (distances[destination] == INF) {
         return path; // Return empty path
     }
     
-    // Special case: if destination is the source (previous[destination] == -1)
+    // Special case: if destination is the source
     if (previous[destination] == -1) {
         path.push_back(destination);
         return path;
     }
     
     // Reconstruct the path by following previous pointers
-    for (int v = destination; v != -1; v = previous[v]) {
+    // Set a limit to prevent infinite loops in case of cycle
+    const int MAX_PATH_LENGTH = 1000;
+    int path_length = 0;
+    
+    for (int v = destination; v != -1 && path_length < MAX_PATH_LENGTH; v = previous[v]) {
         path.push_back(v);
+        path_length++;
+    }
+    
+    // Check if we hit the limit (indicating a likely cycle)
+    if (path_length >= MAX_PATH_LENGTH) {
+        cerr << "Warning: Possible cycle detected in path construction" << endl;
+        return vector<int>(); // Return empty path
     }
     
     // Reverse the path to get the correct order (source to destination)
@@ -83,7 +122,7 @@ vector<int> extract_shortest_path(const vector<int>& distances, const vector<int
 // Print the shortest path and its total cost
 void print_path(const vector<int>& path, int total) {
     if (path.empty()) {
-        cout << "\nTotal cost is " << total << endl;
+        cout << "No path exists.\nTotal cost is " << total << endl;
         return;
     }
     
