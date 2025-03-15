@@ -26,8 +26,8 @@ int main() {
     
     // Check if the start and end words are the same
     if (start_word == end_word) {
-        cout << "Error: Start and end words are the same!" << endl;
-        return 1;
+        cout << "Start and end words are the same: " << start_word << endl;
+        return 0;
     }
     
     // Generate the word ladder

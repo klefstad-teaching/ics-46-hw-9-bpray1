@@ -63,15 +63,21 @@ vector<int> extract_shortest_path(const vector<int>& distances, const vector<int
         return path; // Return empty path
     }
     
+    // Special case: if destination is the source (previous[destination] == -1)
+    if (previous[destination] == -1) {
+        path.push_back(destination);
+        return path;
+    }
+    
     // Reconstruct the path by following previous pointers
     for (int v = destination; v != -1; v = previous[v]) {
         path.push_back(v);
     }
     
-    // Reverse the path to get the  correct order (source to destination)
+    // Reverse the path to get the correct order (source to destination)
     reverse(path.begin(), path.end());
     
-    return path; 
+    return path;
 }
 
 // Print the shortest path and its total cost
@@ -84,7 +90,9 @@ void print_path(const vector<int>& path, int total) {
     // Print vertices with spaces
     for (size_t i = 0; i < path.size(); ++i) {
         cout << path[i];
-        cout << " ";
+        if (i < path.size() - 1) {  // Only add space if not the last element
+            cout << " ";
+        }
     }
     cout << "\nTotal cost is " << total << endl;
 }
