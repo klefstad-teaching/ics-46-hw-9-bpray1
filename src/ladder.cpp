@@ -8,11 +8,17 @@ void error(string word1, string word2, string msg) {
 
 // Check if the edit distance between two strings is within a certain threshold
 bool edit_distance_within(const std::string& str1, const std::string& str2, int d) {
+    // Simple base case
+    if (str1 == str2) {
+        return true;
+    }
+    
+    // If the length difference is more than d, can't be within edit distance d
     if (abs(static_cast<int>(str1.length()) - static_cast<int>(str2.length())) > d) {
         return false;
     }
 
-    // For words of same length, count differing characters
+    // If lengths are the same, count differing characters
     if (str1.length() == str2.length()) {
         int diff_count = 0;
         for (size_t i = 0; i < str1.length(); ++i) {
@@ -26,28 +32,31 @@ bool edit_distance_within(const std::string& str1, const std::string& str2, int 
         return true;
     }
     
-    // Handle case where length differs by 1
-    // Find the shorter and longer string
-    const std::string& shorter = str1.length() < str2.length() ? str1 : str2;
-    const std::string& longer = str1.length() < str2.length() ? str2 : str1;
-    
-    // Try to match by inserting one character at each position in the shorter string
-    for (size_t i = 0; i <= shorter.length(); ++i) {
-        std::string test = shorter.substr(0, i) + "X" + shorter.substr(i); // X is a placeholder
+    // If the lengths differ by 1, check for single insertion/deletion
+    if (abs(static_cast<int>(str1.length()) - static_cast<int>(str2.length())) == 1) {
+        const std::string& shorter = str1.length() < str2.length() ? str1 : str2;
+        const std::string& longer = str1.length() < str2.length() ? str2 : str1;
         
+        // Check if we can transform shorter to longer by inserting one character
+        size_t i = 0, j = 0;
         int diff_count = 0;
-        for (size_t j = 0; j < longer.length(); ++j) {
-            if (j == i) continue; // Skip the inserted character
-            if (j < i && test[j] != longer[j]) diff_count++;
-            else if (j >= i && test[j+1] != longer[j]) diff_count++;
-            
-            if (diff_count > 0) {
-                return false;
+        
+        while (i < shorter.length() && j < longer.length()) {
+            if (shorter[i] == longer[j]) {
+                i++;
+                j++;
+            } else {
+                // Skip the extra character in the longer string
+                j++;
+                diff_count++;
+                if (diff_count > d) {
+                    return false;
+                }
             }
         }
-        if (diff_count <= d) {
-            return true;
-        }
+        
+        // We've reached the end of shorter, but longer might have one more char
+        return (diff_count <= d);
     }
     
     return false;
