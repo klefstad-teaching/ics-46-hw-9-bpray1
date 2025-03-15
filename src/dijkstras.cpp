@@ -68,10 +68,10 @@ vector<int> extract_shortest_path(const vector<int>& distances, const vector<int
         path.push_back(v);
     }
     
-    // Reverse the path to get the correct order (source to destination)
+    // Reverse the path to get the  correct order (source to destination)
     reverse(path.begin(), path.end());
     
-    return path;
+    return path; 
 }
 
 // Print the shortest path and its total cost
