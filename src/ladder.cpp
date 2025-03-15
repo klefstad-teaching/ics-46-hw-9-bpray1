@@ -64,8 +64,10 @@ bool edit_distance_within(const std::string& str1, const std::string& str2, int 
 
 // Check if two words are adjacent (can be transformed with one edit)
 bool is_adjacent(const string& word1, const string& word2) {
-    // Words are adjacent if they differ by exactly one letter
-    // This can mean: replace one letter, insert one letter, or delete one letter
+    // Same words are considered adjacent (based on test requirement)
+    if (word1 == word2) {
+        return true;
+    }
     
     int len1 = word1.length();
     int len2 = word2.length();
@@ -86,48 +88,43 @@ bool is_adjacent(const string& word1, const string& word2) {
                 return false;
             }
         }
-        return diff_count == 1;
+        return diff_count <= 1; // Allow 0 or 1 differences
     }
     
     // Case 2: Different length - check if insertion/deletion of one character
     const string& shorter = (len1 < len2) ? word1 : word2;
     const string& longer = (len1 < len2) ? word2 : word1;
     
-    // Try to find a position where adding a character to the shorter word makes it the longer word
-    for (int i = 0; i <= shorter.length(); ++i) {
-        bool match = true;
-        // Check characters before the insertion/deletion point
-        for (int j = 0; j < i; ++j) {
-            if (shorter[j] != longer[j]) {
-                match = false;
-                break;
+    // Check if longer is formed by inserting one character in shorter
+    int i = 0, j = 0, diff = 0;
+    
+    while (i < shorter.length() && j < longer.length()) {
+        if (shorter[i] == longer[j]) {
+            i++;
+            j++;
+        } else {
+            // Skip this character in longer
+            j++;
+            diff++;
+            if (diff > 1) {
+                return false;
             }
-        }
-        
-        // Check characters after the insertion/deletion point
-        if (match) {
-            for (int j = i; j < shorter.length(); ++j) {
-                if (shorter[j] != longer[j+1]) {
-                    match = false;
-                    break;
-                }
-            }
-        }
-        
-        if (match) {
-            return true;
         }
     }
     
-    return false;
+    // If we've processed all characters in shorter, but not in longer,
+    // the remaining characters in longer count as differences
+    diff += longer.length() - j;
+    
+    return diff <= 1;
 }
 
 // Generate a word ladder from begin_word to end_word
 vector<string> generate_word_ladder(const string& begin_word, const string& end_word, const set<string>& word_list) {
     // Check if begin_word and end_word are the same
     if (begin_word == end_word) {
-        error(begin_word, end_word, "Start and end words are the same");
-        return vector<string>();
+        vector<string> result = {begin_word};
+        return result;
     }
     
     // Convert words to lowercase for case-insensitive comparison
@@ -159,11 +156,6 @@ vector<string> generate_word_ladder(const string& begin_word, const string& end_
         
         string last_word = current_ladder.back();
         
-        // Check if we've reached the end word
-        if (last_word == target_word) {
-            return current_ladder;
-        }
-        
         // Try every word in the dictionary
         for (const string& word : word_list) {
             // Skip words we've already visited
@@ -192,7 +184,6 @@ vector<string> generate_word_ladder(const string& begin_word, const string& end_
     }
     
     // If no ladder is found
-    error(begin_word, end_word, "No word ladder found");
     return vector<string>();
 }
 
@@ -223,12 +214,10 @@ void print_word_ladder(const vector<string>& ladder) {
         return;
     }
     
-    cout << "Word ladder (" << ladder.size() << " steps):" << endl;
+    cout << "Word ladder found: ";
     for (size_t i = 0; i < ladder.size(); ++i) {
         cout << ladder[i];
-        if (i < ladder.size() - 1) {
-            cout << " -> ";
-        }
+        cout << " ";
     }
     cout << endl;
 }
